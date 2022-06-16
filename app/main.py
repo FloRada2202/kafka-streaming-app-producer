@@ -18,7 +18,7 @@ if __name__ == '__main__':
             time.sleep(3)
             logging.info('producing message to topic')
             message = {"id": f"{i}"}
-            kafka_producer.send(os.getenv('KAFKA_TOPIC_SUBSCRIBE'), value=message)
+            kafka_producer.send(os.getenv('KAFKA_SERVICE_OUTPUT_TOPIC'), value=message)
             kafka_producer.flush(timeout=5)
         kafka_producer.close()
     except Exception as e:
