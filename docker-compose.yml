@@ -1,0 +1,18 @@
+version: '3.7'
+services:
+  kafka-connect-service-producer:
+    build:
+      context: ""
+    container_name: kafka-service-connector-producer
+    command: python /app/main.py
+    environment:
+      KAFKA_SERVICE_INTERNAL_HOST: ${KAFKA_SERVICE_INTERNAL_HOST}
+      KAFKA_SERVICE_INTERNAL_PORT: ${KAFKA_SERVICE_INTERNAL_PORT}
+      KAFKA_TOPIC_SUBSCRIBE: ${KAFKA_TOPIC_SUBSCRIBE}
+    networks:
+      - kafka-streaming-app-network
+    tty: true 
+    stdin_open: true
+networks:
+  kafka-streaming-app-network:
+    external: true
