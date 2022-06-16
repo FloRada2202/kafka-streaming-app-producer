@@ -1,5 +1,4 @@
 # Kafka Producer Documentation
-# Kafka Streaming Application
 
 ## Initial setup
 ### 1. Create docker network using following command if network is not previously created
