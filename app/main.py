@@ -3,6 +3,7 @@ import random
 import json
 import time
 import os
+import msgpack
 
 from kafka import KafkaProducer
 
@@ -12,7 +13,7 @@ if __name__ == '__main__':
         logging.info(os.getenv('KAFKA_SERVICE_INTERNAL_HOST'))
         kafka_producer = KafkaProducer(
                 bootstrap_servers=f"{os.getenv('KAFKA_SERVICE_INTERNAL_HOST')}:{os.getenv('KAFKA_SERVICE_INTERNAL_PORT')}",
-                value_serializer=lambda v: json.dumps(v).encode('utf-8')
+                value_serializer=msgpack.packb
             )
         for i in range(1, 10):
             time.sleep(3)
@@ -21,7 +22,7 @@ if __name__ == '__main__':
                 "uid": f"{i}",
                 "ts": time.time()
             }
-            kafka_producer.send(os.getenv('KAFKA_SERVICE_OUTPUT_TOPIC'), value=message)
+            kafka_producer.send(os.getenv('KAFKA_SERVICE_OUTPUT_TOPIC'), value=msgpack.packb(message))
             kafka_producer.flush(timeout=5)
         kafka_producer.close()
     except Exception as e:
