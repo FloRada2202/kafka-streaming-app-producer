@@ -17,7 +17,10 @@ if __name__ == '__main__':
         for i in range(1, 10):
             time.sleep(3)
             logging.info('producing message to topic')
-            message = {"id": f"{i}"}
+            message = {
+                "uid": f"{i}",
+                "ts": time.time()
+            }
             kafka_producer.send(os.getenv('KAFKA_SERVICE_OUTPUT_TOPIC'), value=message)
             kafka_producer.flush(timeout=5)
         kafka_producer.close()
