@@ -1,29 +1,33 @@
 import logging
-import random
-import json
+import ujson
+import gzip
 import time
-import os
-import msgpack
 
-from kafka import KafkaProducer
+from kafka_producer import KafkaProducerClient
+from kafka_configuration import KafkaConfig
 
 logging.basicConfig(level=logging.INFO)
+
+
 if __name__ == '__main__':
     try:
-        logging.info(os.getenv('KAFKA_SERVICE_INTERNAL_HOST'))
-        kafka_producer = KafkaProducer(
-                bootstrap_servers=f"{os.getenv('KAFKA_SERVICE_INTERNAL_HOST')}:{os.getenv('KAFKA_SERVICE_INTERNAL_PORT')}",
-                value_serializer=msgpack.packb
-            )
-        for i in range(1, 10):
-            time.sleep(3)
-            logging.info('producing message to topic')
-            message = {
-                "uid": f"{i}",
-                "ts": time.time()
-            }
-            kafka_producer.send(os.getenv('KAFKA_SERVICE_OUTPUT_TOPIC'), value=msgpack.packb(message))
-            kafka_producer.flush(timeout=5)
-        kafka_producer.close()
+        kafka_producer_instance = KafkaProducerClient().get_producer()
+
+        with gzip.open('stream.jsonl.gz', 'rt') as data:
+            for record in data:
+                try:
+                    kafka_producer_instance.produce(
+                        KafkaConfig().kafka_service_output_topic,
+                        ujson.dumps(record)
+                    )
+                    kafka_producer_instance.poll(0)
+                except BufferError as e:
+                    logging.info("Queue is full. Waiting for the free space!")
+                    kafka_producer_instance.poll(20)
+                    kafka_producer_instance.produce(
+                        KafkaConfig().kafka_service_output_topic,
+                        ujson.dumps(record)
+                    )
+        kafka_producer_instance.flush()
     except Exception as e:
         logging.info(str(e))
